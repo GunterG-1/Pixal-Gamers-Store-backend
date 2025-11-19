@@ -1,1 +1,1 @@
-# Pixal-Gamers-Store-backend
+# PixalGamersStore-backend
