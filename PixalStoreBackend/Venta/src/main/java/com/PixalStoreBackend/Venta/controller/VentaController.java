@@ -1,6 +1,7 @@
 package com.PixalStoreBackend.Venta.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.PixalStoreBackend.Venta.model.Venta;
@@ -37,7 +38,7 @@ public class VentaController {
     }
 
 
-    @PostMapping("/nueva")
+    @PostMapping
     public ResponseEntity<Venta> registrarVenta(@RequestBody Venta venta) {
         try {
             Venta nuevaVenta = ventaService.registrarVenta(venta);
@@ -55,7 +56,7 @@ public class VentaController {
             .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/actualizar/{idVenta}")
+    @PutMapping("/{idVenta}")
     public ResponseEntity<Venta> actualizarVenta(@PathVariable Long idVenta, @RequestBody Venta ventaActualizada) {
         try {
             Venta actualizado = ventaService.actualizarVenta(idVenta, ventaActualizada);
@@ -77,5 +78,44 @@ public class VentaController {
     @GetMapping("/usuario/{idUsuario}")
     public List<Venta> obtenerVentasPorUsuario(@PathVariable Long idUsuario) {
         return ventaRepository.findByIdUsuario(idUsuario);
+    }
+    
+    // Obtener historial de ventas del usuario
+    @GetMapping("/historial")
+    public ResponseEntity<List<Venta>> obtenerHistorial(@RequestParam Long idUsuario) {
+        List<Venta> historial = ventaRepository.findByIdUsuario(idUsuario);
+        return ResponseEntity.ok(historial);
+    }
+    
+    // Actualizar estado de una venta
+    @PutMapping("/{idVenta}/estado")
+    public ResponseEntity<Venta> actualizarEstado(
+            @PathVariable Long idVenta,
+            @RequestBody Map<String, String> body) {
+        try {
+            String nuevoEstado = body.get("estado");
+            Venta venta = ventaService.findById(idVenta)
+                    .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+            
+            venta.setEstado(nuevoEstado);
+            Venta ventaActualizada = ventaRepository.save(venta);
+            return ResponseEntity.ok(ventaActualizada);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Checkout: crear venta a partir del carrito persistido
+    @PostMapping("/checkout")
+    public ResponseEntity<?> checkout(@RequestParam Long idUsuario) {
+        try {
+            Venta venta = ventaService.checkoutDesdeCarrito(idUsuario);
+            return ResponseEntity.ok(venta);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "checkout",
+                "mensaje", e.getMessage()
+            ));
+        }
     }
 }

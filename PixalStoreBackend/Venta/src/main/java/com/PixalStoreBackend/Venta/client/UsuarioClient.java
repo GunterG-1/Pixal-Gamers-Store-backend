@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -14,10 +16,17 @@ public class UsuarioClient {
     private RestTemplate restTemplate;
 
     public UsuarioDTO obtenerPorId(Long idUsuario) {
-        String url = "http://localhost:8081/api/usuarios/{idUsuario}" ;
+        String url = "http://localhost:8081/api/usuarios/{idUsuario}";
         Map<String, Long> params = new HashMap<>();
         params.put("idUsuario", idUsuario);
-        return restTemplate.getForObject(url, UsuarioDTO.class, params);
+        try {
+            return restTemplate.getForObject(url, UsuarioDTO.class, params);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return null; // Usuario no existe
+            }
+            throw e;
+        }
     }
     public UsuarioDTO[] obtenerTodos() {
         String url = "http://localhost:8081/api/admin/usuarios/listar";

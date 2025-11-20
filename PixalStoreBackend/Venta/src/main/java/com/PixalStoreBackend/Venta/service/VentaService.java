@@ -14,6 +14,10 @@ import com.PixalStoreBackend.Venta.client.ProductoClient;
 import com.PixalStoreBackend.Venta.client.ProductoClient.ProductoDTO;
 import com.PixalStoreBackend.Venta.client.UsuarioClient;
 import com.PixalStoreBackend.Venta.client.UsuarioClient.UsuarioDTO;
+import com.PixalStoreBackend.Venta.model.Carrito;
+import com.PixalStoreBackend.Venta.model.CarritoItem;
+import com.PixalStoreBackend.Venta.repository.CarritoRepository;
+import com.PixalStoreBackend.Venta.repository.CarritoItemRepository;
 import com.PixalStoreBackend.Venta.model.DetalleVenta;
 import com.PixalStoreBackend.Venta.model.Venta;
 
@@ -35,6 +39,12 @@ public class VentaService {
     @Autowired
     private UsuarioClient usuarioClient;
 
+    @Autowired
+    private CarritoRepository carritoRepository;
+
+    @Autowired
+    private CarritoItemRepository carritoItemRepository;
+
     
 
    
@@ -52,31 +62,30 @@ public class VentaService {
         venta.setCorreo(usuario.getCorreo());
         venta.setDirUsuario(usuario.getDirUsuario());
 
+        if (venta.getDetalle() == null || venta.getDetalle().isEmpty()) {
+            throw new IllegalArgumentException("La venta no contiene detalles");
+        }
+
         // Procesar los detalles de venta
         for (DetalleVenta detalle : venta.getDetalle()) {
-        
-           
-            // Obtener datos del producto
             ProductoDTO producto = productoClient.obtenerProducto(detalle.getIdProducto());
             if (producto == null) {
-            throw new IllegalArgumentException("Producto no encontrado con ID: " + detalle.getIdProducto());
-}
-            
-
+                throw new IllegalArgumentException("Producto no encontrado con ID: " + detalle.getIdProducto());
+            }
             detalle.setNombreProducto(producto.getNombreProducto());
             detalle.setPrecioUnitario(producto.getPrecioUnitario());
             detalle.setVenta(venta);
         }
-            // Guardar detalle
-            Venta ventaGuardada = ventaRepository.save(venta);
-            
-            // Actualizar stock del producto
+
+        // Guardar venta con detalles (cascade se encarga de DetalleVenta)
+        Venta ventaGuardada = ventaRepository.save(venta);
+
+        // Actualizar stock del producto
         for (DetalleVenta d : venta.getDetalle()) {
-        productoClient.actualizarStock(d.getIdProducto(), d.getCantidad());
-        
-    }
-        
-    return ventaGuardada;
+            productoClient.actualizarStock(d.getIdProducto(), d.getCantidad());
+        }
+
+        return ventaGuardada;
 
     }
 
@@ -112,6 +121,57 @@ public class VentaService {
 
     public void delete(Long id) {
         ventaRepository.deleteById(id);
+    }
+
+    // Checkout: crear Venta desde carrito de usuario y vaciar carrito
+    public Venta checkoutDesdeCarrito(Long idUsuario) {
+        Carrito carrito = carritoRepository.findByIdUsuario(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Carrito vacío o no encontrado para usuario:" + idUsuario));
+        if (carrito.getItems().isEmpty()) {
+            throw new RuntimeException("El carrito está vacío");
+        }
+
+        UsuarioDTO usuario = usuarioClient.obtenerPorId(idUsuario);
+        if (usuario == null) {
+            throw new RuntimeException("Usuario no encontrado para checkout");
+        }
+
+        Venta venta = new Venta();
+        venta.setIdUsuario(idUsuario);
+        venta.setNombreUsuario(usuario.getNombreUsuario());
+        venta.setApellidoUsuario(usuario.getApellidoUsuario());
+        venta.setCorreo(usuario.getCorreo());
+        venta.setDirUsuario(usuario.getDirUsuario());
+        venta.setEstado("PENDIENTE");
+        // fechaVenta se establece en @PrePersist, pero podemos adelantar
+        venta.setFechaVenta(new java.util.Date());
+
+        // Convertir items a detalle
+        List<DetalleVenta> detalles = carrito.getItems().stream().map(item -> {
+            DetalleVenta d = new DetalleVenta();
+            d.setIdProducto(item.getIdProducto());
+            d.setCantidad(item.getCantidad());
+            d.setNombreProducto(item.getNombreProducto());
+            // precioUnitario en DetalleVenta es BigDecimal
+            d.setPrecioUnitario(java.math.BigDecimal.valueOf(item.getPrecioUnitario()));
+            d.setVenta(venta);
+            return d;
+        }).toList();
+        venta.setDetalle(detalles);
+
+        // Guardar venta con detalles
+        Venta guardada = ventaRepository.save(venta);
+
+        // Descontar stock por cada ítem vendido
+        for (DetalleVenta d : guardada.getDetalle()) {
+            productoClient.actualizarStock(d.getIdProducto(), d.getCantidad());
+        }
+
+        // Vaciar carrito (orphanRemoval se encarga al quitar items)
+        carrito.getItems().clear();
+        carritoRepository.save(carrito);
+
+        return guardada;
     }
 
    

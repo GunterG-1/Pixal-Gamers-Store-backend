@@ -20,6 +20,8 @@ public class Producto {
     private Double precio;
     private String descripcion;
     private String categoria;
-    private int categorialabel;
+    private String categorialabel;
     private String imagen;
+    private boolean destacado = false; // Nuevo campo para productos destacados
+    private Integer stock = 0;
 }

@@ -43,36 +43,94 @@ public class UsuarioController {
     }
 
     // Registrar usuario (asigna rol automáticamente según el correo)
-    @PostMapping("/registrar")
-    public ResponseEntity<Usuario> registrar(@RequestBody Usuario usuario) {
+    @PostMapping("/registro")
+    public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
         try {
             Usuario nuevo = usuarioService.registrarUsuario(usuario);
             return ResponseEntity.ok(nuevo);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "registro",
+                "mensaje", e.getMessage()
+            ));
         }
     }
 
     // Login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-        String correo = body.get("correo");
-        String contrasena = body.get("contrasena");
-        String confirmarContrasena = body.get("confirmarContrasena");
+        String correo = body.getOrDefault("correo", body.get("email"));
+        String contrasena = body.getOrDefault("contrasena", body.get("password"));
 
-        // Verificación: pedir la contraseña nuevamente y validar que coincidan
-        if (confirmarContrasena == null || !contrasena.equals(confirmarContrasena)) {
+        if (correo == null || contrasena == null) {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "validacion",
-                "mensaje", "Las contraseñas no coinciden. Por favor, ingrésala nuevamente"
+                "mensaje", "Correo y contraseña son requeridos"
+            ));
+        }
+
+        if (correo.isBlank() || contrasena.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "validacion",
+                "mensaje", "Correo y contraseña no pueden estar vacíos"
             ));
         }
 
         Usuario usuario = usuarioService.login(correo, contrasena);
+        
         if (usuario == null) {
-            return ResponseEntity.status(401).body("Credenciales inválidas");
+            return ResponseEntity.status(401).body(Map.of(
+                "error", "autenticacion",
+                "mensaje", "Credenciales inválidas"
+            ));
         }
+        
+        if (!usuario.isActivo()) {
+            return ResponseEntity.status(403).body(Map.of(
+                "error", "cuenta_desactivada",
+                "mensaje", "Tu cuenta está desactivada"
+            ));
+        }
+        
         return ResponseEntity.ok(usuario);
+    }
+
+    // Logout (Simple - podrías implementar invalidación de token JWT aquí)
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        // Por ahora, solo confirmamos que el logout fue exitoso
+        // En una implementación real, aquí invalidarías el token JWT
+        return ResponseEntity.ok(Map.of("mensaje", "Sesión cerrada exitosamente"));
+    }
+
+    // Validar token/sesión (Simple - podrías validar JWT aquí)
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateSession() {
+        // Por ahora, solo confirmamos que la sesión es válida
+        // En una implementación real, validarías el token JWT
+        return ResponseEntity.ok(Map.of("valido", true));
+    }
+
+    // Obtener perfil del usuario autenticado (Por ahora usa ID en query param)
+    @GetMapping("/perfil")
+    public ResponseEntity<?> getPerfil(@RequestParam Long idUsuario) {
+        return usuarioService.buscarPorId(idUsuario)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Actualizar perfil del usuario autenticado (solo nombre, teléfono, dirección)
+    @PutMapping("/{idUsuario}/perfil")
+    public ResponseEntity<?> updatePerfil(@PathVariable Long idUsuario, @RequestBody Map<String, String> datos) {
+        try {
+            Usuario actualizado = usuarioService.actualizarPerfil(idUsuario, datos);
+            return ResponseEntity.ok(actualizado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "actualizacion",
+                "mensaje", e.getMessage()
+            ));
+        }
     }
 
     // Actualizar usuario
@@ -115,3 +173,4 @@ public class UsuarioController {
         return ResponseEntity.ok(Map.of("esAdmin", esAdmin));
     }
 }
+

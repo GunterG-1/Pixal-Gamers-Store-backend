@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: proxy
+
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+
+      routes:
+        - id: usuarios
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/usuarios/**, /api/admin/usuarios/**, /api/servicio/**
+
+        - id: contacto
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/contacto/**
+
+        - id: productos
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/productos/**
+
+        - id: ventas
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/ventas/**
+
+        - id: logistica
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/envios/**
+

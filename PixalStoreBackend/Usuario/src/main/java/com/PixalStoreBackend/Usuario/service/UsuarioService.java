@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -114,6 +115,37 @@ public class UsuarioService {
     public Usuario login(String correo, String contrasena) {
         return usuarioRepository.findByCorreoAndContrasena(correo, contrasena)
                 .orElse(null);
+    }
+
+    // Actualizar solo perfil (nombre, apellido, teléfono, dirección) - NO correo ni contraseña
+    public Usuario actualizarPerfil(Long idUsuario, Map<String, String> datos) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        if (datos.containsKey("nombreUsuario") || datos.containsKey("nombre")) {
+            String nombre = datos.getOrDefault("nombreUsuario", datos.get("nombre"));
+            if (nombre != null && !nombre.isBlank()) {
+                usuario.setNombreUsuario(nombre);
+            }
+        }
+        
+        if (datos.containsKey("apellidoUsuario") || datos.containsKey("apellido")) {
+            String apellido = datos.getOrDefault("apellidoUsuario", datos.get("apellido"));
+            if (apellido != null && !apellido.isBlank()) {
+                usuario.setApellidoUsuario(apellido);
+            }
+        }
+        
+        if (datos.containsKey("telefono")) {
+            usuario.setTelefono(datos.get("telefono"));
+        }
+        
+        if (datos.containsKey("dirUsuario") || datos.containsKey("direccion")) {
+            String direccion = datos.getOrDefault("dirUsuario", datos.get("direccion"));
+            usuario.setDirUsuario(direccion);
+        }
+        
+        return usuarioRepository.save(usuario);
     }
 
     // Verificar si un usuario es admin por su correo

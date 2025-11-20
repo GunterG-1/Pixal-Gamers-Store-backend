@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +45,8 @@ public class ProductoController {
             producto.setCategoria(productoDetails.getCategoria());
             producto.setCategorialabel(productoDetails.getCategorialabel());
             producto.setImagen(productoDetails.getImagen());
+            producto.setDestacado(productoDetails.isDestacado());
+            producto.setStock(productoDetails.getStock());
             return productoService.saveProducto(producto);
         }
         return null;
@@ -52,5 +55,15 @@ public class ProductoController {
     public void deleteProducto(@PathVariable Long id) {
         productoService.deleteProducto(id);
     }
-   
+    
+    @GetMapping("/destacados")
+    public List<Producto> getProductosDestacados() {
+        return productoService.getProductosDestacados();
+    }
+
+    // Actualizar stock al vender (cantidadVendida se descuenta)
+    @PutMapping("/{id}/actualizarStock")
+    public Producto actualizarStock(@PathVariable Long id, @RequestParam int cantidadVendida) {
+        return productoService.actualizarStock(id, cantidadVendida);
+    }
 }
