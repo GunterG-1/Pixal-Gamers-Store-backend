@@ -24,8 +24,8 @@ public class Venta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idVenta;
 
-    @Column(unique=true, length= 25 , nullable = false) 
-    private String nombreUsuario;
+    @Column(length=25, nullable = false)
+    private String nombreUsuario; // Removed unique constraint to allow multiple ventas per usuario
 
     @Column(length = 25,nullable = false)
     private String apellidoUsuario;
@@ -35,14 +35,27 @@ public class Venta {
 
     private Long idUsuario;
 
-    @Column( nullable = true)
+    @Column(nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaVenta;
 
     @Column(nullable = false)
     private String correo;
     
+    @Column(length = 50)
+    private String estado = "PENDIENTE"; // PENDIENTE, PROCESANDO, ENVIADO, ENTREGADO, CANCELADO
+    
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference 
     private List<DetalleVenta> detalle;
+
+    @PrePersist
+    public void prePersist() {
+        if (fechaVenta == null) {
+            fechaVenta = new Date();
+        }
+        if (estado == null || estado.isBlank()) {
+            estado = "PENDIENTE";
+        }
+    }
 }

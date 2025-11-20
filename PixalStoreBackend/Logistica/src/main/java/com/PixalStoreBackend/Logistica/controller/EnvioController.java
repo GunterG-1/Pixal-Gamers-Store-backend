@@ -29,7 +29,7 @@ public class EnvioController {
     }
 
     
-    @PostMapping("/crearEnvio")
+    @PostMapping
     public ResponseEntity<Envio> crearEnvio(@RequestBody Envio envio) {
         try{
             Envio envioNuevo = envioService.crearEnvio(envio);
@@ -40,7 +40,7 @@ public class EnvioController {
         }
     }
     
-    @PutMapping("/actualizar/{idEnvio}")
+    @PutMapping("/{idEnvio}")
     public ResponseEntity<Envio> actualizarEnvio(@PathVariable Long idEnvio, @RequestBody Envio envio) {
         try {
             Envio actualizado = envioService.actualizarEnvio(idEnvio, envio);
