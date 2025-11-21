@@ -54,7 +54,9 @@ public class UsuarioService {
         Rol rol = rolRepository.findByNombreRol(nombreRol);
         
         if (rol != null) {
-            usuario.getRoles().add(rol);
+            // Añadir rol en lado inverso y asegurar relación en lado dueño
+            usuario.getRoles().add(rol); // lado inverso (Usuario)
+            rol.getUsuarios().add(usuario); // lado dueño (Rol) para persistir join table
         }
         
         usuario.setActivo(true);
@@ -105,10 +107,16 @@ public class UsuarioService {
 
     // Eliminar usuario
     public void eliminarUsuario(Long idUsuario) {
-        if (!usuarioRepository.existsById(idUsuario)) {
-            throw new RuntimeException("Usuario no encontrado");
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        // Limpiar relaciones ManyToMany antes de eliminar
+        for (Rol rol : usuario.getRoles()) {
+            rol.getUsuarios().remove(usuario);
         }
-        usuarioRepository.deleteById(idUsuario);
+        usuario.getRoles().clear();
+        
+        usuarioRepository.delete(usuario);
     }
 
     // Login (autenticación simple)

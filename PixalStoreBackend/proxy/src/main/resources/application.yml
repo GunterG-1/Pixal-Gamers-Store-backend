@@ -5,6 +5,8 @@ spring:
   application:
     name: proxy
 
+
+
   cloud:
     gateway:
       globalcors:
@@ -13,6 +15,7 @@ spring:
             allowedOrigins:
               - "http://localhost:5173"
               - "http://localhost:3000"
+              - "http://pixal-gamers-store.s3-website-us-east-1.amazonaws.com"
             allowedMethods:
               - GET
               - POST
@@ -26,6 +29,32 @@ spring:
             maxAge: 3600
 
       routes:
+        # ==== Swagger per microservicio (acceso centralizado) ====
+        # Usuario: http://localhost:8080/usuario/doc/swagger-ui.html
+        - id: usuario-swagger
+          uri: http://localhost:8081
+          predicates:
+            - Path=/usuario/doc/**, /usuario/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+
+        # Producto: http://localhost:8080/producto/doc/swagger-ui.html
+        - id: producto-swagger
+          uri: http://localhost:8082
+          predicates:
+            - Path=/producto/doc/**, /producto/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+
+        # Venta: http://localhost:8080/venta/doc/swagger-ui.html
+        - id: venta-swagger
+          uri: http://localhost:8083
+          predicates:
+            - Path=/venta/doc/**, /venta/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+
+            
         - id: usuarios
           uri: http://localhost:8081
           predicates:
@@ -46,8 +75,5 @@ spring:
           predicates:
             - Path=/api/ventas/**
 
-        - id: logistica
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/envios/**
+     
 

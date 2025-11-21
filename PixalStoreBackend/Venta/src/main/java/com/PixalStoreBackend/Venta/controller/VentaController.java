@@ -112,9 +112,17 @@ public class VentaController {
             Venta venta = ventaService.checkoutDesdeCarrito(idUsuario);
             return ResponseEntity.ok(venta);
         } catch (RuntimeException e) {
+            String msg = e.getMessage() == null ? "Error en checkout" : e.getMessage();
+            String msgLower = msg.toLowerCase();
+            if (msgLower.contains("stock")) {
+                return ResponseEntity.status(409).body(Map.of(
+                    "error", "stock_insuficiente",
+                    "mensaje", msg
+                ));
+            }
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "checkout",
-                "mensaje", e.getMessage()
+                "mensaje", msg
             ));
         }
     }

@@ -51,7 +51,7 @@ public class Usuario {
 
     private boolean activo = true;
 
-    @ManyToMany(mappedBy = "usuarios")
+    @ManyToMany(mappedBy = "usuarios", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<Rol> roles = new HashSet<>();
 
 }
