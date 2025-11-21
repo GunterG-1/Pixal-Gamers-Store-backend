@@ -16,6 +16,7 @@ spring:
               - "http://localhost:5173"
               - "http://localhost:3000"
               - "http://pixal-gamers-store.s3-website-us-east-1.amazonaws.com"
+              - "http://pixal-gamers-store.s3-website-us-east-1.amazonaws.com/"
             allowedMethods:
               - GET
               - POST
@@ -75,5 +76,5 @@ spring:
           predicates:
             - Path=/api/ventas/**
 
-     
+
 
