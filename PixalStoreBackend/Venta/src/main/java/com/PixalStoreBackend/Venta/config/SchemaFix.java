@@ -15,21 +15,21 @@ public class SchemaFix {
     @Bean
     CommandLineRunner dropUniqueIndexIfExists() {
         return args -> {
-            // Ensure table exists
+            
             String tableExistsSql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'venta'";
             Number tableExists = ((Number) em.createNativeQuery(tableExistsSql).getSingleResult());
             if (tableExists.intValue() == 0) {
                 return; // Nothing to do
             }
 
-            // Check specific index name from previous schema
+            
             String indexName = "UKesugfh42xi6p0dv2ieg68a8ax";
             String indexExistsSql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'venta' AND INDEX_NAME = '" + indexName + "'";
             Number idxExists = ((Number) em.createNativeQuery(indexExistsSql).getSingleResult());
             if (idxExists.intValue() > 0) {
                 em.createNativeQuery("ALTER TABLE `venta` DROP INDEX `" + indexName + "`").executeUpdate();
             } else {
-                // Fallback: drop any unique index on nombreUsuario
+                
                 var names = em.createNativeQuery(
                         "SELECT DISTINCT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'venta' AND COLUMN_NAME = 'nombreUsuario' AND NON_UNIQUE = 0")
                         .getResultList();

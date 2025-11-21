@@ -3,6 +3,7 @@ package com.PixalStoreBackend.Producto.Controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 import com.PixalStoreBackend.Producto.Model.Producto;
 import com.PixalStoreBackend.Producto.Service.ProductoService;
@@ -63,7 +66,20 @@ public class ProductoController {
 
     // Actualizar stock al vender (cantidadVendida se descuenta)
     @PutMapping("/{id}/actualizarStock")
-    public Producto actualizarStock(@PathVariable Long id, @RequestParam int cantidadVendida) {
-        return productoService.actualizarStock(id, cantidadVendida);
+    public ResponseEntity<?> actualizarStock(@PathVariable Long id, @RequestParam int cantidadVendida) {
+        try {
+            Producto producto = productoService.actualizarStock(id, cantidadVendida);
+            return ResponseEntity.ok(producto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "validacion",
+                "mensaje", e.getMessage()
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(409).body(Map.of(
+                "error", "stock_insuficiente",
+                "mensaje", e.getMessage()
+            ));
+        }
     }
 }

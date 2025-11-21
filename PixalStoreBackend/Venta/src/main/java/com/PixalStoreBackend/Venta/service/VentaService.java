@@ -135,6 +135,11 @@ public class VentaService {
         if (usuario == null) {
             throw new RuntimeException("Usuario no encontrado para checkout");
         }
+        
+       
+        if (usuario.getDirUsuario() == null || usuario.getDirUsuario().isBlank()) {
+            throw new RuntimeException("Debes agregar una dirección de envío en tu perfil antes de realizar la compra");
+        }
 
         Venta venta = new Venta();
         venta.setIdUsuario(idUsuario);

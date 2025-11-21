@@ -103,11 +103,10 @@ public class UsuarioController {
         return ResponseEntity.ok(Map.of("mensaje", "Sesión cerrada exitosamente"));
     }
 
-    // Validar token/sesión (Simple - podrías validar JWT aquí)
+
     @GetMapping("/validate")
     public ResponseEntity<?> validateSession() {
-        // Por ahora, solo confirmamos que la sesión es válida
-        // En una implementación real, validarías el token JWT
+        
         return ResponseEntity.ok(Map.of("valido", true));
     }
 

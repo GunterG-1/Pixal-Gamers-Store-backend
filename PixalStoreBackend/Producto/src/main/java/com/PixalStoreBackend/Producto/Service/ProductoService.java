@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.PixalStoreBackend.Producto.Model.Producto;
 import com.PixalStoreBackend.Producto.Repository.ProductoRepository;
@@ -36,6 +37,7 @@ public class ProductoService {
     }
 
     // Decrementa stock al vender cantidadVendida
+    @Transactional
     public Producto actualizarStock(Long idProducto, int cantidadVendida) {
         if (cantidadVendida <= 0) {
             throw new IllegalArgumentException("cantidadVendida debe ser > 0");
