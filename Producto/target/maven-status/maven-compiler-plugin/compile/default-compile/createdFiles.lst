@@ -1,7 +1,0 @@
-com\PixalStoreBackend\Producto\Controller\ProductoController.class
-com\PixalStoreBackend\Producto\ProductoApplication.class
-com\PixalStoreBackend\Producto\Config\DataInitializer.class
-com\PixalStoreBackend\Producto\Repository\ProductoRepository.class
-com\PixalStoreBackend\Producto\Service\ProductoService.class
-com\PixalStoreBackend\Producto\Config\OpenApiConfig.class
-com\PixalStoreBackend\Producto\Model\Producto.class
