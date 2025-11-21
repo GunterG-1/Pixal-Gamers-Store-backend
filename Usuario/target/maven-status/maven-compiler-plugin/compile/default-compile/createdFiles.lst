@@ -1,0 +1,12 @@
+com\PixalStoreBackend\Usuario\model\Rol.class
+com\PixalStoreBackend\Usuario\controller\ContactoController.class
+com\PixalStoreBackend\Usuario\UsuarioApplication.class
+com\PixalStoreBackend\Usuario\repository\UsuarioRepository.class
+com\PixalStoreBackend\Usuario\model\Contactos.class
+com\PixalStoreBackend\Usuario\service\UsuarioService.class
+com\PixalStoreBackend\Usuario\controller\UsuarioController.class
+com\PixalStoreBackend\Usuario\model\Usuario.class
+com\PixalStoreBackend\Usuario\config\OpenApiConfig.class
+com\PixalStoreBackend\Usuario\service\ContactoService.class
+com\PixalStoreBackend\Usuario\repository\ContactoRepository.class
+com\PixalStoreBackend\Usuario\repository\RolRepository.class
